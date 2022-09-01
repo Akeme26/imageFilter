@@ -32,8 +32,8 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
 
   //! END @TODO1
   app.get("/filteredimage", async (req: Request, res: Response, next: NextFunction) => {
-    let { image_url } = req.query;
-    
+    let image_url : string = req.query.image_url;
+
     if(!image_url) {
       //respond with an error
       return res.status(422)
@@ -41,10 +41,11 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
     }
     //try to find the image by URL
     try {
-      let photo = await filterImageFromURL(image_url);
+      let photo : string = await filterImageFromURL(image_url);
       
       //respond with image
-      res.sendFile(photo, {}, (Error) => {
+      res.status(200) 
+         .sendFile(photo, {}, (Error) => {
         if(Error) {
           next(Error)
 
