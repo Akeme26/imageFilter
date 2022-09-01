@@ -1,4 +1,4 @@
-import express, {Request, Response}from 'express';
+import express, {NextFunction, Request, Response}from 'express';
 import bodyParser from 'body-parser';
 import {filterImageFromURL, deleteLocalFiles} from './util/util';
 
@@ -31,22 +31,34 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
   /**************************************************************************** */
 
   //! END @TODO1
-  app.get("/filteredimage/", async (req: Request, res: Response) => {
+  app.get("/filteredimage", async (req: Request, res: Response, next: NextFunction) => {
     let { image_url } = req.query;
+    
     if(!image_url) {
       //respond with an error
       return res.status(422)
                 .send(`image URL is required`)
     }
     //try to find the image by URL
-    let photo = await filterImageFromURL(image_url);
-    //respond with image
-    res.status(200)
-              .send(photo)
+    try {
+      let photo = await filterImageFromURL(image_url);
+      
+      //respond with image
+      res.sendFile(photo, {}, (Error) => {
+        if(Error) {
+          next(Error)
 
-              await deleteLocalFiles([photo])         
+        } else {
+          deleteLocalFiles([photo])  
+        }
+      });
+      return;    
+    } catch (Error) {
+        return res.status(422)
+                  .json(Error);
+    }  
     
-  } )
+  });
   
   // Root Endpoint
   // Displays a simple message to the user
